@@ -1,0 +1,31 @@
+# before importing data into Hive, we need to create a Hive db, do this from theh shell by typing
+>hive
+# From the shell, create a hive db as below
+create database obg_sqoop_import;
+
+# once done, switch to this db as below:
+use obg_sqoop_import;
+# To test the db, create a test table t and insert a value 1 into it as below:
+create table t (i int);
+insert into table t values (1);
+select * from t;
+drop table t;
+
+# simple hive import
+sqoop import --connect jdbc:mysql://localhost/retail_db --username root --password cloudera \
+  --table order_items \
+  --hive-import \
+  --hive-database obg_sqoop_import \
+  --hive-table order_items \
+  --num-mappers 2
+  
+# To check the hive table, do the following
+1- type: hive in the shell
+2- type: use obg_sqoop_import;
+3- type: show tables;
+4- type: describe formatted order_items;
+5- you'll see among the properties the hdfs path
+6- type: hadoop fs -ls hdfs://quickstart.cloudera:8020/user/hive/warehouse/obg_sqoop_import.db/order_items
+7- type: hadoop fs -get hdfs://quickstart.cloudera:8020/user/hive/warehouse/obg_sqoop_import.db/order_items to copy the files into local directory
+8- navigate to the directory and view any of the files
+9- The default delimeter in hive is ^A
