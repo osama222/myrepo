@@ -1,1 +1,13 @@
+# We've 2 hive tables, orders and order_items, we'll write a quiery to proces the data and then export it
+# We'll create the below hive table to store the daily revenue for 07-2013
+create table daily_revenue as
+select order_date, sum(order_item_subtotal) daily_revenue
+from orders join order_items on
+order_id = order_item_order_id
+where order_date like '2013-07%'
+group by order_date;
+
+
+# We'll export this data to RDBMS so we can visualize it later
+
 
