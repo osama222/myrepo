@@ -29,3 +29,23 @@ sqoop import --connect jdbc:mysql://localhost/retail_db --username root --passwo
 7- type: hadoop fs -get hdfs://quickstart.cloudera:8020/user/hive/warehouse/obg_sqoop_import.db/order_items to copy the files into local directory
 8- navigate to the directory and view any of the files
 9- The default delimeter in hive is ^A
+
+# the default behaviour for hive import is to append to an existing table.
+# If you need to overwrite the existing data, add the flag --hive-overwrite as below:
+sqoop import --connect jdbc:mysql://localhost/retail_db --username root --password cloudera \
+  --table order_items \
+  --hive-import \
+  --hive-database obg_sqoop_import \
+  --hive-table order_items \
+  --hive-overwrite \
+  --num-mappers 2
+  
+  # To create a new import with a new hive table, run the below command.
+  # Note, if the table already exist, then the job will fail
+  sqoop import --connect jdbc:mysql://localhost/retail_db --username root --password cloudera \
+  --table order_items \
+  --hive-import \
+  --hive-database obg_sqoop_import \
+  --hive-table order_items \
+  --create-hive-table \
+  --num-mappers 2
