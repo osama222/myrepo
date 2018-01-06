@@ -8,6 +8,62 @@ where order_date like '2013-07%'
 group by order_date;
 
 
-# We'll export this data to RDBMS so we can visualize it later
+# We'll export this data to RDBMS (retail_export) so we can visualize it later
+create database retail_export;
+use retail_export;
+create table daily_revenue(
+    order_date varchar(30),
+    revenue float
+    );
+describe formatted daily_revenue;
+# the output will display lots of info including the column's data type and the path, you'll need to copy this path
+#to use it as a export-dir in the export command below.
 
-
+# Run the below to export the data 
+sqoop export \
+	--connect jdbc:mysql://localhost/retail_export \
+	--username root \
+	--password cloudera \
+	--table daily_revenue \
+	--export-dir hdfs://quickstart.cloudera:8020/user/hive/warehouse/obg_sqoop_import.db/daily_revenue \
+	--input-fields-terminated-by "\001" \
+  --num-mappers 1
+  
+  
+# Run the below to export the data and select which columns should be exported and the order of columns (column mapping)
+sqoop export \
+	--connect jdbc:mysql://localhost/retail_export \
+	--username root \
+	--password cloudera \
+	--table daily_revenue \
+  --columns order_date, revenue \
+	--export-dir hdfs://quickstart.cloudera:8020/user/hive/warehouse/obg_sqoop_import.db/daily_revenue \
+	--input-fields-terminated-by "\001" \
+  --num-mappers 1
+  
+# The defaul behavious for the export is insert, to change it to update, run the following:
+sqoop export \
+	--connect jdbc:mysql://localhost/retail_export \
+	--username root \
+	--password cloudera \
+	--table daily_revenue \
+  --update-key order_date \
+  --update-mode allowinsert \
+	--export-dir hdfs://quickstart.cloudera:8020/user/hive/warehouse/obg_sqoop_import.db/daily_revenue \
+	--input-fields-terminated-by "\001" \
+  --num-mappers 1
+  
+  
+# To insert data into staging table before production table, run the below:
+sqoop export \
+	--connect jdbc:mysql://localhost/retail_export \
+	--username root \
+	--password cloudera \
+	--table daily_revenue \
+  --staging-table daily_revenue_staging \
+  --clear-staging-table \
+	--export-dir hdfs://quickstart.cloudera:8020/user/hive/warehouse/obg_sqoop_import.db/daily_revenue \
+	--input-fields-terminated-by "\001" \
+  --num-mappers 1
+  
+  
