@@ -109,5 +109,16 @@ sqoop import --connect jdbc:mysql://localhost/retail_db --username root --passwo
   --incremental append \
   --last-value '2014-02-28'
 
+
+# To import all tables from MySQL to HDFS, run the below, note that you've to use --warehouse-dir flag when importing all tables
+sqoop import-all-tables --connect jdbc:mysql://localhost/retail_db --username root --password *** \
+  --warehouse-dir /user/cloudera/sqoop-import/retail_db/order_items \
+  --autoreset-to-one-mapper
+  
+  
+  
+  
+
+  
   
   
