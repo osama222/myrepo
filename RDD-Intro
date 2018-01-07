@@ -1,0 +1,14 @@
+# To get the size of your data set on HDFS, run the below:
+hadoop fs -ls /user/cloudera/retail_db
+hadoop fs -du -s -h /user/cloudera/retail_db
+
+# To start spark shell and using yarn as the master, type:
+spark-shell --master yarn --conf spark.port.ui=12654 --num-executors 1 --executor-memory 512M
+
+# Initialize programatically
+# From spark shell, you've to write sc.stop() to stop the current spark context instance
+import org.apache.spark.{sparkConf, sparkContext}
+val conf = new sparkConf().setAppName("Daily Revenue").setMaster("yarn-client")
+val sc = new sparkContext(conf)
+# Get spark environment details 
+sc.getConf.getAll.foreach(println)
