@@ -12,3 +12,20 @@ val conf = new sparkConf().setAppName("Daily Revenue").setMaster("yarn-client")
 val sc = new sparkContext(conf)
 # Get spark environment details 
 sc.getConf.getAll.foreach(println)
+
+# Create a new RDD from a text file 
+val orders = sc.textFile("/user/cloudera/retail_db/orders")
+# Return first row of the RDD
+orders.first
+# Return the first 10 records of the RDD
+orders.take(10)
+# Print the values of these 10 lines
+orders.take(10).foreach(println)
+orders.count
+# RDD from files in local file system
+val productsRaw = scala.io.Source.fromFile("/data/retail_db/products/part-00000").getLines.toList
+val products = sc.parallelize(productsRaw)
+
+# Define RDD from a list onf Ints
+val l = (1 to 10).toList
+val pro = sc.parallelize
