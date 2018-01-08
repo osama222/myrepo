@@ -29,3 +29,46 @@ val products = sc.parallelize(productsRaw)
 # Define RDD from a list onf Ints
 val l = (1 to 10).toList
 val pro = sc.parallelize
+
+# Reading data from json file, same way applied to other file formats like orc, parquete and so on
+val ordersDF = sqlContext.read.json("/user/cloudera/retail_db_json/orders").show
+# The output will look like
++-----------------+--------------------+--------+---------------+               
+|order_customer_id|          order_date|order_id|   order_status|
++-----------------+--------------------+--------+---------------+
+|            11599|2013-07-25 00:00:...|       1|         CLOSED|
+|              256|2013-07-25 00:00:...|       2|PENDING_PAYMENT|
+|            12111|2013-07-25 00:00:...|       3|       COMPLETE|
+|             8827|2013-07-25 00:00:...|       4|         CLOSED|
+|            11318|2013-07-25 00:00:...|       5|       COMPLETE|
+|             7130|2013-07-25 00:00:...|       6|       COMPLETE|
+|             4530|2013-07-25 00:00:...|       7|       COMPLETE|
+|             2911|2013-07-25 00:00:...|       8|     PROCESSING|
+|             5657|2013-07-25 00:00:...|       9|PENDING_PAYMENT|
+|             5648|2013-07-25 00:00:...|      10|PENDING_PAYMENT|
+|              918|2013-07-25 00:00:...|      11| PAYMENT_REVIEW|
+|             1837|2013-07-25 00:00:...|      12|         CLOSED|
+|             9149|2013-07-25 00:00:...|      13|PENDING_PAYMENT|
+|             9842|2013-07-25 00:00:...|      14|     PROCESSING|
+|             2568|2013-07-25 00:00:...|      15|       COMPLETE|
+|             7276|2013-07-25 00:00:...|      16|PENDING_PAYMENT|
+|             2667|2013-07-25 00:00:...|      17|       COMPLETE|
+|             1205|2013-07-25 00:00:...|      18|         CLOSED|
+|             9488|2013-07-25 00:00:...|      19|PENDING_PAYMENT|
+|             9198|2013-07-25 00:00:...|      20|     PROCESSING|
++-----------------+--------------------+--------+---------------+
+
+# To see the schema of the dataframe, type:
+ordersDF.printSchema
+# Output as below
+root
+ |-- order_customer_id: long (nullable = true)
+ |-- order_date: string (nullable = true)
+ |-- order_id: long (nullable = true)
+ |-- order_status: string (nullable = true)
+ 
+ 
+ # To select specific columns from the Dataframe, type:
+ ordersDF.select("order_id", "order_status").show
+
+
