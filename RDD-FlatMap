@@ -1,0 +1,2 @@
+// Sometimes we use flatMap after GroupByKey
+// flatMap work on each element in the RDD
