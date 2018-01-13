@@ -1,0 +1,31 @@
+// we need to extract the order date which is the second column in the string and then transform the date from 
+// 2013-07-25 00:00:00.0 to 20130725 as an Int
+// Start Spark Shell in cluster mode
+spark-shell --conf spark.port.ui = 12654 --master yarn --num-executors 1 --executor-memory 512M
+// Read data from orders table on HDFS
+val orders = sc.textFile(/user/cloudera/retail_db/orders)
+// Read the first line of the rile
+val str = orders.first()
+// str = 21,2013-07-25 00:00:00.0,11599,CLOSED -> 20130725 as Int
+orderDates = orders.map(str => {
+	str.split(",")(1).substring(0, 10).replace("-", "").toInt
+})
+// Print the first 10 order dates in the new RDD
+orderDates.take(10).foreach(println)
+
+// display the order_id and order_date
+val ordersPairedRDD = orders.map(order => {
+	val o = order.split(",")
+	(o(0).toInt, o(1)substring(0, 10).replace("-", "").toInt)
+})
+// display the first 10 rows of the ordersPairedRDD
+ordersPairedRDD.take(10).foreach(println)
+
+val orderItems = sc.textFile(/user/cloudera/retail_db/order_items)
+val orderItemsPairedRDD = orderItems.map(orderItem => {
+	val oi = orderItems.split(",")
+	(oi(1).toInt, orderItem)
+})
+
+orderItemsPairedRDD.take(10).foreach(println)
+
