@@ -1,0 +1,49 @@
+// Inner joins between orders and orderItems
+val orders = sc.textFile("/user/cloudera/retail_db/orders")
+val orderItems = sc.textFile("/user/cloudera/retail_db/order_items")
+
+val ordersMap = orders.map(order => (order.split(",")(0).toInt, order.split(",")(1).substring(0, 10))) 
+ordersMap.take(10).foreach(println)
+-------- output ----------
+(1,2013-07-25)
+(2,2013-07-25)
+(3,2013-07-25)
+(4,2013-07-25)
+(5,2013-07-25)
+(6,2013-07-25)
+(7,2013-07-25)
+(8,2013-07-25)
+(9,2013-07-25)
+(10,2013-07-25)
+----------------------------
+
+val orderItemsMap = orderItems.map(orderItem => {
+	(orderItem.split(",")(1).toInt, orderItem.split(",")(4).toFloat)
+})
+orderItemsMap.take(10).foreach(println)
+------ output ---------
+(1,299.98)
+(2,199.99)
+(2,250.0)
+(2,129.99)
+(4,49.98)
+(4,299.95)
+(4,150.0)
+(4,199.92)
+(5,299.98)
+(5,299.95)
+----------------------
+val ordersJoin = ordersMap.join(orderItemsMap)
+ordersJoin.take(10).foreach(println)
+----- output -------
+(41234,(2014-04-04,109.94))                                                     
+(65722,(2014-05-23,119.98))
+(65722,(2014-05-23,400.0))
+(65722,(2014-05-23,399.98))
+(65722,(2014-05-23,199.95))
+(65722,(2014-05-23,199.98))
+(28730,(2014-01-18,299.95))
+(28730,(2014-01-18,50.0))
+(68522,(2014-06-05,329.99))
+(23776,(2013-12-20,199.99))
+-------------------
