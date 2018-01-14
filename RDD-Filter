@@ -1,0 +1,14 @@
+// Read Orders table
+val orders = sc.textFile("/user/cloudera/retail_db/orders")
+// Get list of orders with status Complate
+orders.filter(order => order.split(",")(3)=="COMPLETE").take(10).foreach(println)
+
+// Extract all the statuses of the order
+orders.map(order => order.split(",")(3)).distinct.collect.foreach(println)
+// Get all orders of 2013-09 with status Complete or Closed
+// 1,2013-07-25 00:00:00.0,11599,CLOSED
+val ordersFiltered = orders.filter(order => {
+    val o = order.split(",")
+    (o(3) == "COMPLETE" || o(3) == "CLOSED") && (o(1).contains("2013-09"))
+    }) 
+ordersFiltered.take(10).foreach(println)
