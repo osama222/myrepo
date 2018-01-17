@@ -47,3 +47,33 @@ ordersJoin.take(10).foreach(println)
 (68522,(2014-06-05,329.99))
 (23776,(2013-12-20,199.99))
 -------------------
+
+// Left and righ joins
+// Get all orders which don't have corresponding entries in order item
+// this can be acheived using left join
+val ordersMap = orders.map(order =>{(order.split(",")(0).toInt, order)})
+val orderItemsMap = orderItems.map(orderItem=>{(orderItem.split(",")(1).toInt, orderItem)})
+val ordersLeftOuterJoin = ordersMap.leftOuterJoin(orderItemsMap)
+// to understand how tuples work, run the following
+val t = ordersLeftOuterJoin.first  // this will return (Int, (String, Option[String])) = 
+	(41234,(41234,2014-04-04 00:00:00.0,3182,PENDING_PAYMENT,Some(102921,41234,249,2,109.94,54.97)))
+
+t._1 // this will return Int = 41234
+t._2 // this will return (41234,2014-04-04 00:00:00.0,3182,PENDING_PAYMENT,Some(102921,41234,249,2,109.94,54.97))
+t._2._2 // this will return Some(102921,41234,249,2,109.94,54.97)
+
+// to get the orders with status None
+val filteredordersLeftOuterJoin = ordersLeftOuterJoin.filter(order => order._2._2 == None)
+// output will look like the below
+(5354,(5354,2013-08-26 00:00:00.0,7616,PENDING_PAYMENT,None))
+(40888,(40888,2014-04-02 00:00:00.0,4528,CLOSED,None))
+(62490,(62490,2014-01-22 00:00:00.0,8942,ON_HOLD,None))
+
+// we're only interested in the middle part 5354,2013-08-26 00:00:00.0,7616,PENDING_PAYMENT, so we'll use map and since this is a tuple
+// we can't use split to split by command and treat it as an array, we should use the same way as t._1._2 
+val orderWithNoOrderItem = filteredordersLeftOuterJoin.map(order=> order._2_1) 
+
+
+
+
+
