@@ -1,0 +1,15 @@
+// GroupByKey doesn't use combiners (doesn't split the calculations into multi-threads) so it has some performance impact
+// Get revenue by order_id
+// Sort data in a desc by order_item_subtotal for each order_id
+val orderItems = sc.textFile("/user/cloudera/retail_db/order_items")
+val orderItemsMap = orderItems.map(orderItem => (orderItem.split(",")(1).toInt, orderItem.split(",")(4).toFloat))
+// group order_items by key
+val orderItemsGBK = orderItemsMap.groupByKey
+orderItemsGBK.take(10).foreach(println)
+//Get revenue per order_id
+orderItemsGBK.map(rec => (rec._1, rec._2.toList.sum)).take(10).foreach(println)
+//Get data in descending order by order_item_subtotal for each order_id
+val ordersSortedByRevenue = orderItemsGBK.
+  flatMap(rec => {
+    rec._2.toList.sortBy(o => -o).map(k => (rec._1, k))
+  })
