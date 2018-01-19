@@ -1,0 +1,11 @@
+// reduceByKey usees combiner which leads to better performance
+val orderItems = sc.textFile("/user/cloudera/retail_db/order_items")
+val orderItemsMap = orderItems.map(orderItem => (orderItem.split(",")(1).toInt, orderItem.split(",")(4).toFloat))
+val revenuePerOrderId = orderItemsMap.reduceByKey(
+	(total, revenue) => total + revenue 
+)
+
+val minOrderItemPerOrderId = orderItemsMap.
+	reduceByKey((min, revenue) => if(min > revenue) revenue else min)
+  
+  
