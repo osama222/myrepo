@@ -1,0 +1,30 @@
+val products = sc.textFile("/user/cloudera/retail_db/products")
+val productsMap = products.map(product => (product.split(",")(1).toInt, product))
+val productsSortedByCategoryId = productsMap.sortByKey() // this will sort it asc
+// if we need to sort it desc
+val productsSortedByCategoryId = productsMap.sortByKey(false)
+// filter the records where the 5th element is not null
+val productsMap = products.filter(product => product.split(",")(4) != "").map(product => (product.split(",")(1).toInt, product))
+// sort by composit key
+val productsMap = products.
+  filter(product => product.split(",")(4) != "").
+  map(product => ((product.split(",")(1).toInt, -product.split(",")(4).toFloat), product))
+
+val productsSortedByCategoryId = productsMap.sortByKey().map(rec => rec._2)
+
+// Ranking - global ranking - details of 5 products
+// this is our normal ranking which use take(5) and then use sortByKey
+val top5ORders = productsMap.take(5).foreach(println)
+// another way of ranking is by using takeOrdered()
+// get top 10 record in a reverse order without using map and filter and so on
+val tankedProducts = products.filter(product => product.split(",")(4) != "").takeOrdered(10)(Ordering[Float].reverse.on(product => product.split(",")(4).toFloat))
+// Ranking - get top N products within each product category
+val productsMap = products.filter(product => product.split(",")(4) != "").map(product => (product.split(",")(1).toInt, product))
+val productsGroupByCategory = productsMap.groupByKey
+// Get top N prices products
+val productsIterable = productsGroupByCategory.first._2 // read the first line to familiarize yourself with the data
+val productPrices = productsIterable.map(p => p.split(",")(4).toFloat).toSet // we used toSet to remove duplicate
+val topNPrices = productPrices.toList.sortBy(p => -p).take(5)
+
+
+
