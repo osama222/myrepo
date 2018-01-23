@@ -1,0 +1,15 @@
+// Save RDD to HDFS
+val orders = sc.textFile("/user/cloudera/retail_db/orders")
+val orderCountByStatus = orders.map(order => (order.split(",")(3), 1)).reduceByKey((total, element) => total + element)
+// save the file as tab delimited
+orderCountByStatus.map(rec => rec._1 + "\t" + rec._2).saveAsTextFile("/user/cloudera/order_count_by_status")
+//save file with compression
+orderCountByStatus.saveAsTextFile("/user/cloudera/order_count_by_status_compressed", classOf[org.apache.hadoop.io.compress.GzipCodec])
+// read the data from json file format
+sqlContext.read.json("/user/cloudera/retail_db_json/orders").show
+val ordersDF = sqlContext.read.json("/user/cloudera/retail_db_json/orders")
+ordersDF.save("/user/cloudera/orders_parquet", "parquet")
+sqlContext.load("/user/cloudera/orders_parquet", "parquet").show
+ordersDF.write.orc("/user/cloudera/orders_orc")
+sqlContext.load("/user/cloudera/orders_orc", "orc").show
+
