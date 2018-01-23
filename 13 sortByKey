@@ -45,6 +45,12 @@ def getTopNPricedProducts(productsIterable: Iterable[String], topN: Int): Iterab
 }
 val productsIterable = productsGroupByCategory.first._2
 getTopNPricedProducts(productsIterable, 3).foreach(println)
+// To get Top N products by category, we'll use the same above function
+val topNPricedProductsPerCategory = productsGroupByCategory.flatMap(rec => getTopNPricedProducts(rec._2, 3))
+topNPricedProductsPerCategory.collect.foreach(println)
+
+
+
 
 
 
