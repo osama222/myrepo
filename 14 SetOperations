@@ -1,0 +1,21 @@
+// setOperations should happen for 2 similar datasets (RDD), they should have same number of columns and same data types
+val orders = sc.textFile("/user/cloudera/retail_db/orders")
+val customers_201308 = orders.filter(order => order.split(",")(1).contains("201308")).map(order => order.split(",")(2).toInt)
+val customers_201309 = orders.filter(order => order.split(",")(1).contains("201309")).map(order => order.split(",")(2).toInt)
+
+// get the customers who placed their oders in both aug 2013 and sep 2013
+val customers_201308_and_201309 = customers_201308.intersection(customers_201309)
+// get all unique customers who placed their oders on sep or aug
+val customers_201308_union_201309 = customers_201308.union(customers_201309).distinct
+// Get all customers who placed orders in 2013 August but not in 2013 September
+val customer_201308_minus_201309 = customers_201308.map(c => (c, 1)).
+  leftOuterJoin(customers_201309.map(c => (c, 1))).
+  filter(rec => rec._2._2 == None).
+  map(rec => rec._1).
+  distinct
+  
+  
+
+
+
+
