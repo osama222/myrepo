@@ -1,0 +1,46 @@
+// Launch Spark Shell 
+spark-shell --master yarn --num-executors 1 --executor-memory 512M --conf spark.ui.port=12673
+// To determin the resources needed for spark to run, we need to know the data size and cluster resources
+// To know the data size, from the Terminal, run 
+hadoop fs -ls file:///home/cloudera/Downloads/data-master/retail_db/orders/
+hadoop fs -ls file:///home/cloudera/Downloads/data-master/retail_db/order_items/
+// To get the cluster capacity, open your browser and navigate to Yarn
+cluster.url.com:8088
+// if they didn't provide you with yarn url
+vi /etc/hadoop/conf/yarn-site.xml
+/resourcemanager.webapp.address  // you'll see Yarn url
+// Read orders and order_items tables
+// to read from local file system
+val orders = sc.textFile("file:///home/cloudera/Downloads/data-master/retail_db/orders/")
+// to read from hdfs
+val orders = sc.textFile("/user/cloudera/retail_db/orders")
+// to read from local file system
+val orderItems = sc.textFile("file:///home/cloudera/Downloads/data-master/retail_db/order_items/")
+// to read from hdfs
+val orderItems = sc.textFile("/user/cloudera/retail_db/order_items")
+orders.take(10).foreach(println)
+orderItems.take(10).foreach(println)
+// Filter for completed or closed orders
+val ordersFiltered = orders.filter(order => order.split(",")(3) == "COMPLETE" || order.split(",")(3) == "CLOSED")
+// Convert orders and orderItems into key value pairs to be able to join them in the next step
+val ordersMap = ordersFiltered.map({
+ofi => (ofi.split(",")(0).toInt, ofi.split(",")(1))
+})
+val orderItemsMap = orderItems.
+map({oi => (oi.split(",")(1).toInt, (oi.split(",")(2).toInt, oi.split(",")(4).toFloat))})
+// Join the 2 RDDs
+val ordersJoin = ordersMap.join(orderItemsMap)
+// //(order_id, (order_date, (order_item_product_id, order_item_subtotal)))
+// (65722,(2014-05-23 00:00:00.0,(365,119.98)))
+// calculate daily revenue per product id
+// first we need to transform the RDD into a form of ((order_date, order_item_product_id), order_item_subtotal)
+ordersJoinMap = ordersJoin.map(rec => ((rec._2._1, rec._2._2._1), rec._2._2._2))
+val dailyRevenuePerProductId = ordersJoinMap.reduceByKey((revenue, order_item_subtotal) => revenue + order_item_subtotal)
+//((order_date, order_item_product_id), daily_revenue_per_product_id)
+((2014-07-17 00:00:00.0,403),3379.7402)
+((2013-11-21 00:00:00.0,982),149.99)
+((2013-10-11 00:00:00.0,116),224.95)
+
+
+
+
