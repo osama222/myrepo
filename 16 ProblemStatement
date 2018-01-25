@@ -40,7 +40,37 @@ val dailyRevenuePerProductId = ordersJoinMap.reduceByKey((revenue, order_item_su
 ((2014-07-17 00:00:00.0,403),3379.7402)
 ((2013-11-21 00:00:00.0,982),149.99)
 ((2013-10-11 00:00:00.0,116),224.95)
-
+// load products from local file system
+import scala.io.Source
+val productsRaw = Source.fromFile("/home/cloudera/Downloads/data-master/retail_db/products/part-00000").getLines.toList
+productsRaw.count
+// Convert it to RDD
+val products = sc.parallelize(productsRaw)
+// Join daily revenue per product id with products to get daily revenue per product (by name)
+val productsMap = products.map(product => (product.split(",")(0).toInt, product.split(",")(2)))
+// we need to transform the dailyRevenuePerProductId data format from 
+// ((order_date, order_product_id), daily_revenue_per_product_id) to (order_product_id, (order_date, daily_revenue_per_product_id))
+val dailyRevenuePerProductIdMap = dailyRevenuePerProductId.map(rec => (rec._1._2, (rec._1._1, rec._2)))
+//(order_product_id, ((order_date, daily_revenue_per_product_id), product_name))
+val dailyRevenuePerProductJoin = dailyRevenuePerProductIdMap.join(productsMap)
+// Data need to be sorted in an asc order by date and desc by daily revenue 
+// the final output should be (date, revenue, product name)
+val dailyRevenuePerProductSorted = dailyRevenuePerProductJoin.map(rec => ((rec._2._1._1, -rec._2._1._2), (rec._2._1._1, rec._2._1._2, rec._2._2))).sortByKey()
+dailyRevenuePerProductSorted.take(100).foreach(println)
+//((order_date_asc, daily_revenue_per_product_id_desc), (order_date,daily_revenue_per_product,product_name))
+// Get data to desired format – order_date,daily_revenue_per_product,product_name
+val dailyRevenuePerProduct = dailyRevenuePerProductSorted.map(rec => rec._2._1 + "," + rec._2._2 + "," + rec._2._3)
+// Save final output into HDFS in avro file format as well as text file format
+// HDFS location – avro format /user/YOUR_USER_ID/daily_revenue_avro_scala
+// HDFS location – text format /user/YOUR_USER_ID/daily_revenue_txt_scala
+dailyRevenuePerProduct.saveAsTextFile("/user/cloudera/daily_revenue_txt_scala")
+// to preview the data, from the shell run the below command
+hdfs dfs -tail /user/cloudera/daily_revenue_txt_scala/part-00000
+// Copy both from HDFS to local file system
+mkdir daily_revenue_scala
+hadoop fs -get /user/cloudera/daily_revenue_txt_scala /home/cloudera/daily_revenue_scala/daily_revenue_txt_scala
+cd daily_revenue_scala/daily_revenue_txt_scala/
+ls -ltr
 
 
 
