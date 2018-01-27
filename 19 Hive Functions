@@ -3,4 +3,18 @@ select length('hello world');
 // select length of a column in a table
 use obg_retail_db_txt;
 select order_status, length(order_status) from orders limit 10;
+// using substr to extract a substring from a whoel string
+select substr('hello world, how are you', 14); // here the index starts from 1 not 0, the secnod param is the starting position
+select substr('hello world, how are you', 7, 5); // here start position is the 7th char and the length is the 5th char
+select "hello world, how are you" like '%world%';
+select lower("Hello World, How ARE you");
+select upper("Hello World, How ARE you");
+select trim(" hello world, how are you ");
+select order_date from orders limit 10;
+select substr(order_date, 6, 2) from orders limit 10;
+select current_timestamp;
+select to_date(current_timestamp);
+select to_unix_timestamp(current_timestamp);
+select to_date(order_date) from orders limit 10;
+
 
