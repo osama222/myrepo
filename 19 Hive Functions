@@ -1,0 +1,6 @@
+// from hive get a lenght of a string
+select length('hello world');
+// select length of a column in a table
+use obg_retail_db_txt;
+select order_status, length(order_status) from orders limit 10;
+
