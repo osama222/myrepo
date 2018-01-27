@@ -1,0 +1,3 @@
+// from spark-shell
+sqlContext.sql("use obg_retail_db_txt")
+sqlContext.sql("select * from orders limit 10").show
