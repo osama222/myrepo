@@ -16,5 +16,34 @@ select current_timestamp;
 select to_date(current_timestamp);
 select to_unix_timestamp(current_timestamp);
 select to_date(order_date) from orders limit 10;
+// using case 
+select order_status,
+       case  
+            when order_status IN ('CLOSED', 'COMPLETE') then 'No Action' 
+            when order_status IN ('ON_HOLD', 'PAYMENT_REVIEW', 'PENDING', 'PENDING_PAYMENT', 'PROCESSING') then 'Pending Action'
+            else 'Risky'
+       end from orders limit 10;
+       
+// using date_format
+select date_format ('2013-07-04 11:32:45.0', 'YYYYMM');
+// another way to extract date from orders table and conver it to int
+select cast(date_format(order_date, 'YYYYMM') as int) from orders limit 10;
+
+select o.*, c.* 
+from orders o, customers c
+where o.order_customer_id = c.customer_id
+limit 10;
+// using inner join
+select o.*, c.* 
+from orders o join customers c
+on o.order_customer_id = c.customer_id
+limit 10;
+
+select c.* from customers c left outer join orders o
+on o.order_customer_id = c.customer_id
+where o.order_customer_id is null;
+
+
+
 
 
