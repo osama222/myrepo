@@ -1,0 +1,67 @@
+// Problem statement:
+// Get daily revenue by product considering completed and closed orders.
+//    * Products should be read from the local file system.
+//    * Join orders and order_items.
+//    * Filter on order_status.
+// Data need to be sorted by asc order by date and by desc order by revenue computed for each product for each day.
+//    * sort the data in asc order by order_date and then daily_revenue_per_product in desc order.
+
+val ordersRDD = sc.textFile("/user/cloudera/retail_db/orders")
+// convert rdd to df, remember it has to be in a form of a tuple
+val ordersDF = ordersRDD.map(order => {
+    (order.split(",")(0).toInt, order.split(",")(1), order.split(",")(2).toInt, order.split(",")(3))
+}).toDF("order_id", "order_date", "order_customer_id", "order_status")
+// display the records, by default it shows the first 20 record
+ordersDF.show
+// to be able to run sql queries against this DF, you've to create a temp table and associate it with the DF.
+ordersDF.registerTempTable("orders")
+// run your sql query as it's a normal table in a db
+sqlContext.sql("select * from orders limit 10").show()
+sqlContext.sql("select order_status, count(1) count_by_status from orders group by order_status").show()
+// Read products table from local file system
+import scala.io.Source
+val productsRaw = Source.fromFile("/home/cloudera/Downloads/data-master/retail_db/products/part-00000").getLines.toList
+// Conver to RDD
+val productsRDD = sc.parallelize(productsRaw)
+// convert to df
+val productsDF = productsRDD.map(product => {
+    (product.split(",")(0).toInt, product.split(",")(2))
+}).toDF("product_id", "product_name")
+productsDF.show()
+// register products temp table
+productsDF.registerTempTable("products")
+// display first 10 records
+sqlContext.sql("select * from products limit 10").show()
+sqlContext.sql("use obg_retail_db_orc")
+sqlContext.sql("show tables").show()
+// partition the data to use only 2 partitions
+sqlContext.setConf("spark.sql.shuffle.partitions", "2")
+sqlContext.sql("SELECT o.order_date, p.product_name, sum(oi.order_item_subtotal) daily_revenue_per_product " +
+"FROM orders o JOIN order_items oi " +
+"ON o.order_id = oi.order_item_order_id " +
+"JOIN products p ON p.product_id = oi.order_item_product_id " +
+"WHERE o.order_status IN ('COMPLETE', 'CLOSED') " +
+"GROUP BY o.order_date, p.product_name " +
+"ORDER BY o.order_date, daily_revenue_per_product desc").
+show()
+
+// Save the data to hvie table
+sqlContext.sql("CREATE DATABASE obg_daily_revenue")
+sqlContext.sql("CREATE TABLE obg_daily_revenue.daily_revenue " +
+"(order_date string, product_name string, daily_revenue_per_product float) " +
+"STORED AS orc")
+
+val daily_revenue_per_product = sqlContext.sql("SELECT o.order_date, p.product_name, sum(oi.order_item_subtotal) daily_revenue_per_product " +
+"FROM orders o JOIN order_items oi " +
+"ON o.order_id = oi.order_item_order_id " +
+"JOIN products p ON p.product_id = oi.order_item_product_id " +
+"WHERE o.order_status IN ('COMPLETE', 'CLOSED') " +
+"GROUP BY o.order_date, p.product_name " +
+"ORDER BY o.order_date, daily_revenue_per_product desc")
+// insert the data into the hive table
+daily_revenue_per_product.insertInto("obg_daily_revenue.daily_revenue")
+// show the data
+sqlContext.sql("select * from obg_daily_revenue.daily_revenue").show()
+
+
+
