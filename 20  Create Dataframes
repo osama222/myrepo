@@ -63,5 +63,15 @@ daily_revenue_per_product.insertInto("obg_daily_revenue.daily_revenue")
 // show the data
 sqlContext.sql("select * from obg_daily_revenue.daily_revenue").show()
 
+// save the output as a json file
+daily_revenue_per_product.save("/user/dgadiraju/daily_revenue_save", "json")
+// you can write the output as any output format, not only json
+daily_revenue_per_product.write.json("/user/dgadiraju/daily_revenue_write")
+// using select statement with df
+daily_revenue_per_product.select("order_date", "daily_revenue_per_product")
+// filter records
+daily_revenue_per_product.filter(daily_revenue_per_product("order_date") === "2013-07-25 00:00:00.0").count
+
+
 
 
