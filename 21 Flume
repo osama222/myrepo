@@ -1,0 +1,41 @@
+// flume user docs: http://archive-primary.cloudera.com/cdh5/cdh/5/flume-ng-1.6.0-cdh5.10.1/FlumeUserGuide.html
+create new dir, create a new example.conf file and paste the below
+
+# this is a simple example to show how to use flume, don't use this on production environment
+
+# example.conf: A single-node Flume configuration
+
+# Name the components on this agent
+a1.sources = r1
+a1.sinks = k1
+a1.channels = c1
+
+# Describe/configure the source
+a1.sources.r1.type = netcat
+a1.sources.r1.bind = localhost
+a1.sources.r1.port = 44444
+
+# Describe the sink
+a1.sinks.k1.type = logger
+
+# Use a channel which buffers events in memory
+a1.channels.c1.type = memory
+a1.channels.c1.capacity = 1000
+a1.channels.c1.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+a1.sources.r1.channels = c1
+a1.sinks.k1.channel = c1
+
+##### where: a1 is the agent name, it can be anything 
+##### sources is the data source that flume agent will read the data from
+##### sinks is the sink that will write to the destination
+##### channels is the communication between the source and the sink
+
+# to start flume agent, in the terminal type
+$ bin/flume-ng agent -n $agent_name -c conf -f conf/flume-conf.properties.template
+# where $agent_name is the agent name tha you've defined in the .conf file, in our case it's a1
+flume-ng agent --name a1 --conf-file /home/cloudera/Downloads/flume_demo/example.conf
+
+
+
