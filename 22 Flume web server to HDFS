@@ -1,0 +1,94 @@
+// here we'll be ingesting data from web server to hdfs using flume
+// source: exec // exec is used to execute a command like -tail, ...
+// sink: hdfs
+// channel: memory
+// the log generator script located under /home/cloudera/Downloads/kafka_flume/gen_logs/lib
+
+https://github.com/kiritbasu/Fake-Apache-Log-Generator
+
+Basic Usage
+
+Generate a single log line to STDOUT
+$ python log_gen2.py  
+
+Generate 100 log lines into a .log file
+$ python log_gen2.py -n 100 -o LOG 
+
+Generate 100 log lines into a .gz file at intervals of 10 seconds
+$ python log_gen2.py -n 100 -o GZ -s 10
+
+Infinite log file generation (useful for testing File Tail Readers)
+$ python log_gen2.py -n 0 -o LOG 
+
+to view the generated logs run
+tail -F access_logs.log
+///////////////
+
+// to prepare
+1- create a new dir
+2- copy log_gen2.py to this dir
+3- create a new conf file and edit it
+///////////////////// flume.config file contents
+mple.conf: A single-node Flume configuration
+
+# Name the components on this agent
+wh.sources = ws
+wh.sinks = k1
+wh.channels = mem
+
+# Describe/configure the source
+wh.sources.ws.type = exec
+wh.sources.ws.command = tail -F /home/cloudera/Downloads/wslogstohdfs/access_log.log
+
+# Describe the sink
+wh.sinks.k1.type = logger
+
+# Use a channel which buffers events in memory
+wh.channels.mem.type = memory
+wh.channels.mem.capacity = 1000
+wh.channels.mem.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+wh.sources.ws.channels = mem
+wh.sinks.k1.channel = mem
+/////////////////////////
+4- run flume-ng agent -n wh -f /home/cloudera/Downloads/wslogstohdfs/wshdfs.conf 
+5- in another terminal run  python log_gen2.py -n 0 -o LOG
+6- switch back to Flume's terminal and you'll start seeing the messages.
+
+//////////////// Next we'll configure flume agent to write the files to hdfs instead of displaying on the screen
+// flume.conf
+# Name the components on this agent
+wh.sources = ws
+wh.sinks = hd
+wh.channels = mem
+
+# Describe/configure the source
+wh.sources.ws.type = exec
+wh.sources.ws.command = tail -F /home/cloudera/Downloads/wslogstohdfs/access_log.log
+
+# Describe the sink
+wh.sinks.hd.type = hdfs
+wh.sinks.hd.hdfs.path = hdfs://quickstart.cloudera:8020/user/cloudera/flume_demo
+wh.sinks.hd.hdfs.rollSize = 1048576
+wh.sinks.hd.hdfs.fileSuffix = .txt
+wh.sinks.hd.hdfs.fileType = DataStream
+wh.sinks.hd.hdfs.filePrefix = FlumeDemo_
+wh.sinks.hd.hdfs.rollInterval = 120
+wh.sinks.hd.hdfs.rollCount = 100
+
+# Use a channel which buffers events in memory
+wh.channels.mem.type = memory
+wh.channels.mem.capacity = 1048576
+wh.channels.mem.transactionCapacity = 100
+
+# Bind the source and sink to the channel
+wh.sources.ws.channels = mem
+wh.sinks.hd.channel = mem
+
+////////////////////////////
+
+
+
+
+
