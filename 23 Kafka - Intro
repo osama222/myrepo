@@ -1,0 +1,16 @@
+// Kafka scripts are located under /usr/bin
+// Create new kafka topic called test
+kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+// where: partitions is the number of partitions will be created to host the topics, this is used for scalability
+//        replication-factor can be used to multiple copies of the partitions on different locations
+// to check for an existing topics
+kafka-topics.sh --list --zookeeper localhost:2181
+// send some messages to kafka server
+kafka-console-producer --broker-list quickstart.cloudera:9092 --topic test
+// then start typing anything
+hello, world, bla bla bla
+// to start receiving (consuming) messages
+afka-console-consumer --zookeeper localhost:2181 --topic test --from-beginning
+
+
+
