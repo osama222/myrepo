@@ -1,0 +1,40 @@
+// Problem:
+//  Get department wise traffic every 30 secs
+//    read data from retail_db logs
+//    compute department traffic every 30 secs
+//    save the output to hdfs
+// Solution:
+//  Use spark streaming
+//  publish messages from retail_db logs to netcat
+//  create DStream
+//  Process and save the output to hdfs
+
+package pkgwordcount
+import org.apache.spark._
+import org.apache.spark.SparkConf
+import org.apache.spark.streaming.{StreamingContext, Seconds}
+
+object wordcount {
+  def main(args: Array[String]): Unit = {
+    val conf = new SparkConf().setAppName("streaming word count").setMaster(args(0))
+    val ssc = new StreamingContext(conf, Seconds(30))
+    val messages = ssc.socketTextStream(args(1), args(2).toInt)
+    val departmentMessages = messages.
+      filter(msg => {
+        val endPoint = msg.split(" ")(6)
+        endPoint.split("/")(1) == "department"
+      })
+    val departments = departmentMessages.
+      map(rec => {
+        val endPoint = rec.split(" ")(6)
+        (endPoint.split("/")(2), 1)
+      })
+    val departmentTraffic = departments.
+      reduceByKey((total, value) => total + value)
+    departmentTraffic.saveAsTextFiles("/user/cloudera/deptwisetraffic/cnt")
+  }
+
+}
+
+
+
