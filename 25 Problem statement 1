@@ -55,3 +55,7 @@ crimeCountPerMonthPerTypeSorted.saveAsTextFile("/user/cloudera/crimesdataset/", 
 // if we need to save as one file, add coalesce as below
 crimeCountPerMonthPerTypeSorted.coalesce(1).saveAsTextFile("/user/cloudera/crimesdataset/solution/", classOf[org.apache.hadoop.io.compress.GzipCodec])
 
+// to verify the output
+val output = sc.textFile("/user/cloudera/crimesdataset/solution_df/")
+output.take(10).foreach(println)
+
