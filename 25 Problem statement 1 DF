@@ -1,0 +1,40 @@
+// solution using dataframes
+val crimeData = sc.textFile("/user/cloudera/crimesdataset")
+// display top 10 records
+crimeData.take(10).foreach(println)
+// ID,Case Number,Date,Block,IUCR,Primary Type,Description,Location Description,Arrest,Domestic,Beat,District,Ward,Community Area,FBI Code,X Coordinate,Y Coordinate,Year,Updated On,Latitude,Longitude,Location
+//4647369,HM155213,01/31/2006 12:13:05 PM,066XX N BOSWORTH AVE,1811,NARCOTICS,POSS: CANNABIS 30GMS OR LESS,"SCHOOL, PUBLIC, BUILDING",true,false,2432,024,40,1,18,1164737,1944193,2006,04/15/2016 08:55:02 AM,42.002478396,-87.66929687,"(42.002478396, -87.66929687)"
+// we need to exclude the header from the dataset
+// we can do it as below 
+val crimeDataWithoutHeader  = crimeDataWithoutHeader.first
+
+val crimeDataWithDateAndTypeDF = crimeDataWithoutHeader.map(rec => (rec.split(",")(2), rec.split(",")(5))).toDF("crime_date", "crime_type")
+crimeDataWithDateAndTypeDF.take(5).foreach(println)
+
+crimeDataWithDateAndTypeDF.registerTempTable("crime_data")
+
+sqlContext.sql("select * from crime_data limit 5").show
+
++--------------------+-----------------+
+|          crime_date|       crime_type|
++--------------------+-----------------+
+|01/31/2006 12:13:...|        NARCOTICS|
+|03/21/2006 07:00:...|CRIMINAL TRESPASS|
+|02/09/2006 01:44:...|        NARCOTICS|
+|03/21/2006 04:45:...|            THEFT|
+|03/21/2006 10:00:...|            THEFT|
++--------------------+-----------------+
+
+// remember substr function, the first position in the string is 1 
+val crimeCountPerMonthPerTypeDF = sqlContext.sql("select cast(concat(substr(crime_date, 7, 4), substr(crime_date, 0, 2)) as int)  as crime_month , crime_type, " +
+ "count(1) crime_count_per_month_per_type from crime_data " + 
+ "group by cast(concat(substr(crime_date, 7, 4), substr(crime_date, 0, 2)) as int), crime_type " +
+ "order by crime_month, crime_count_per_month_per_type desc")
+
+
+crimeCountPerMonthPerTypeDF.rdd.
+map(rec => rec.mkString("\t")).
+coalesce(1).
+saveAsTextFile("/user/cloudera/crimesdataset/solution_df/", classOf[org.apache.hadoop.io.compress.GzipCodec])
+
+
