@@ -1,0 +1,23 @@
+import scala.io.Source
+
+val ordersRaw = Source.fromFile("/home/cloudera/Downloads/data-master/retail_db/orders/part-00000").getLines.toList
+val ordersRDD = sc.parallelize(ordersRaw)
+
+val customersRaw = Source.fromFile("/home/cloudera/Downloads/data-master/retail_db/customers/part-00000").getLines.toList
+val customersRDD = sc.parallelize(customersRaw)
+
+val ordersDF = ordersRDD.map(o => o.split(",")(2).toInt).toDF("order_customer_id")
+val customersDF = customersRDD.map(c => (c.split(",")(0).toInt, c.split(",")(1), c.split(",")(2))).toDF("customer_id", "customer_fname", "customer_lname")
+
+ordersDF.registerTempTable("orders")
+customersDF.registerTempTable("customers")
+
+sqlContext.sql("select customer_lname, customer_fname " +
+    "from customers left outer join orders " + 
+    "on customer_id = order_customer_id " + 
+    "where order_customer_id is null " + 
+    "order by customer_lname, customer_fname").
+rdd.map(rec => rec.mkString(", ")).
+saveAsTextFile("/user/cloudera/solutions/solutions02/inactive_customers")
+
+
